@@ -45,7 +45,9 @@ local function GetGameInfo()
 end
 
 getgenv().Parvus = {
+    
 Source = "https://raw.githubusercontent.com/Remember008862/Parvus/main/"
+    
     Games = {
         ["Universal" ] = { Name = "Universal",                  Script = "Universal"  },
         ["1168263273"] = { Name = "Bad Business",               Script = "Games/BB"   },
@@ -87,6 +89,7 @@ Parvus.Utilities.UI:Push({
     Description = Parvus.Game.Name .. " loaded!\n\nThis script is open sourced\nIf you have paid for this script\nOr had to go thru ads\nYou have been scammed.",
     Duration = NotificationTime
 })
+
 
 
 
