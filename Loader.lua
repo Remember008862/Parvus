@@ -44,9 +44,7 @@ local function GetGameInfo()
     return Parvus.Games.Universal
 end
 print("Pre Game Finished")
-while true do 
     task.wait(5)
-end
 getgenv().Parvus = {
     Source = "https://raw.githubusercontent.com/Remember008862/Parvus/main/",
     Games = {
@@ -62,7 +60,8 @@ getgenv().Parvus = {
         ["1054526971"] = { Name = "Blackhawk Rescue Mission 5", Script = "Games/BRM5" }
     }
 }
-
+print("post game finished")
+wait(5)
 
 Parvus.Utilities = LoadScript("Utilities/Main")
 Parvus.Utilities.UI = LoadScript("Utilities/UI")
@@ -74,7 +73,8 @@ Parvus.Loadstring = GetFile("Utilities/Loadstring")
 Parvus.Loadstring = Parvus.Loadstring:format(
     Parvus.Source, Branch, NotificationTime, tostring(IsLocal)
 )
-
+print("post util finished")
+wait(5)
 LocalPlayer.OnTeleport:Connect(function(State)
     if State == Enum.TeleportState.InProgress then
         --ClearTeleportQueue()
@@ -96,6 +96,7 @@ print("Loader Finished")
 while true do 
     task.wait(10)
 end
+
 
 
 
