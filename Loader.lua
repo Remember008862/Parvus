@@ -106,10 +106,11 @@ else
     if not ok then
         warn("Formatting Loadstring template failed:", built)
     else
-        Parvus. = built
-        safePrint("Parvus.Loadstring built successfully")
+        Parvus.Loadstring = built
+        print("Parvus.Loadstring built successfully")
     end
 end
+
 Parvus.GetFileSafe = Parvus.GetFileSafe:format(
     Parvus.Source, Branch, NotificationTime, tostring(IsLocal)
 )
@@ -136,6 +137,7 @@ print("Loader Finished")
 while true do 
     task.wait(10)
 end
+
 
 
 
