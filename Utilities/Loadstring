@@ -1,5 +1,16 @@
-local Source = "%sLoader.lua" 
-local Branch, NotificationTime, 
-IsLocal = "%s", %s, %s 
-loadstring(IsLocal and readfile("Parvus/Loader.lua") or game:HttpGet(Source), "Loader")(Branch, NotificationTime, IsLocal)
+local Branch, NotificationTime, IsLocal = "%s", %s, %s
+local Source = "%s"
+local FileContent
 
+if IsLocal then
+    FileContent = readfile("Parvus/Loader.lua")
+else
+    FileContent = game:HttpGet(Source)
+end
+
+if FileContent then
+    local LoaderFunc = loadstring(FileContent, "Loader")
+    LoaderFunc(Branch, NotificationTime, IsLocal)
+else
+    warn("Failed to load the Loader.lua file")
+end
