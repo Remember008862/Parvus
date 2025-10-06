@@ -9,13 +9,13 @@ if Parvus and Parvus.Loaded then
     }) return
 end
 
---[[if Parvus and (Parvus.Game and not Parvus.Loaded) then
+if Parvus and (Parvus.Game and not Parvus.Loaded) then
     Parvus.Utilities.UI:Push({
         Title = "Parvus Hub",
         Description = "Something went wrong!",
         Duration = 5
     }) return
-end]]
+end
 
 local PlayerService = game:GetService("Players")
 repeat task.wait() until PlayerService.LocalPlayer
@@ -88,5 +88,6 @@ Parvus.Utilities.UI:Push({
     Description = Parvus.Game.Name .. " loaded!\n\nThis script is open sourced\nIf you have paid for this script\nOr had to go thru ads\nYou have been scammed.",
     Duration = NotificationTime
 })
+
 
 
