@@ -89,6 +89,10 @@ Parvus.Utilities.UI:Push({
     Duration = NotificationTime
 })
 
+print("Loader Finished")
+while true do 
+    task.wait(10)
+end
 
 
 
