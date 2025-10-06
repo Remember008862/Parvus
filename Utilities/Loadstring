@@ -2,13 +2,15 @@ local Branch = "main"          -- example branch
 local NotificationTime = 5      -- example
 local IsLocal = true            -- example
 
-local Source = "https://raw.githubusercontent.com/Remember008862/Parvus/main/Loader.lua"
+-- make sure Parvus table exists exactly like the loader expects
+getgenv().Parvus = getgenv().Parvus or {}
+getgenv().Parvus.Source = "https://raw.githubusercontent.com/Remember008862/Parvus/main/"
 
 local FileContent
 if IsLocal then
     FileContent = readfile("Parvus/Loader.lua")
 else
-    FileContent = game:HttpGet(Source)
+    FileContent = game:HttpGet(getgenv().Parvus.Source.."Loader.lua")
 end
 
 if FileContent then
