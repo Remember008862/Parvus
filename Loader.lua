@@ -43,7 +43,10 @@ local function GetGameInfo()
 
     return Parvus.Games.Universal
 end
-
+print("Pre Game Finished")
+while true do 
+    task.wait(5)
+end
 getgenv().Parvus = {
     Source = "https://raw.githubusercontent.com/Remember008862/Parvus/main/",
     Games = {
@@ -93,6 +96,7 @@ print("Loader Finished")
 while true do 
     task.wait(10)
 end
+
 
 
 
