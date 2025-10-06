@@ -86,7 +86,8 @@ local Window = Parvus.Utilities.UI:Window({
             SilentAimSection:Toggle({Name = "Enabled", Flag = "SilentAim/Enabled", Value = false}):Keybind({Mouse = true, Flag = "SilentAim/Keybind"})
 
             SilentAimSection:Toggle({Name = "Prediction", Flag = "SilentAim/Prediction", Value = false})
-
+            -- put this inside the SilentAimSection UI block
+SilentAimSection:Toggle({Name = "Use Zombies Folder", Flag = "SilentAim/UseZombies", Value = false})
             SilentAimSection:Toggle({Name = "Team Check", Flag = "SilentAim/TeamCheck", Value = false})
             SilentAimSection:Toggle({Name = "Distance Check", Flag = "SilentAim/DistanceCheck", Value = false})
             SilentAimSection:Toggle({Name = "Visibility Check", Flag = "SilentAim/VisibilityCheck", Value = false})
@@ -187,6 +188,67 @@ end
 local function SolveTrajectory(Origin, Velocity, Time, Gravity)
     return Origin + Velocity * Time + Gravity * Time * Time / GravityCorrection
 end
+
+local function GetClosestZombie(Enabled,
+    VisibilityCheck, DistanceCheck,
+    DistanceLimit, FieldOfView, Priority, BodyParts,
+    PredictionEnabled
+)
+    if not Enabled then return end
+    local zombiesFolder = workspace:FindFirstChild("Zombies")
+    if not zombiesFolder then return end
+
+    local CameraPosition = Camera.CFrame.Position
+    local Closest = nil
+    local BestFOV = FieldOfView
+
+    for _, model in ipairs(zombiesFolder:GetChildren()) do
+        if not model:IsA("Model") then continue end
+
+        -- prefer Head, then PrimaryPart, then HumanoidRootPart
+        local TargetPart = model:FindFirstChild("Head") or model.PrimaryPart or model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso")
+        if not TargetPart or not TargetPart:IsA("BasePart") then continue end
+
+        local Hum = model:FindFirstChildOfClass("Humanoid")
+        if Hum and Hum.Health <= 0 then continue end
+
+        local BodyPartPosition = TargetPart.Position
+        local Distance = (BodyPartPosition - CameraPosition).Magnitude
+
+        if PredictionEnabled then
+            BodyPartPosition = SolveTrajectory(BodyPartPosition, TargetPart.AssemblyLinearVelocity, Distance / ProjectileSpeed, ProjectileGravity)
+        end
+
+        local ScreenPosition, OnScreen = Camera:WorldToViewportPoint(BodyPartPosition)
+        local ScreenVec2 = Vector2.new(ScreenPosition.X, ScreenPosition.Y)
+        if not OnScreen then continue end
+
+        if not WithinReach(DistanceCheck, Distance, DistanceLimit) then continue end
+        if ObjectOccluded(VisibilityCheck, CameraPosition, BodyPartPosition, model) then continue end
+
+        local Magnitude = (ScreenVec2 - UserInputService:GetMouseLocation()).Magnitude
+        if Magnitude >= FieldOfView then continue end
+
+        -- Priority handling: Random / specific part / Closest
+        if Priority == "Random" then
+            return {model, model, TargetPart, ScreenVec2}
+        elseif Priority ~= "Closest" and type(Priority) == "string" then
+            local specified = model:FindFirstChild(Priority)
+            if specified and specified:IsA("BasePart") then
+                local spScreen, spOn = Camera:WorldToViewportPoint(specified.Position)
+                return {model, model, specified, Vector2.new(spScreen.X, spScreen.Y)}
+            end
+        end
+
+        if Magnitude < BestFOV then
+            BestFOV = Magnitude
+            Closest = {model, model, TargetPart, ScreenVec2}
+        end
+    end
+
+    return Closest
+end
+
 local function GetClosest(Enabled,
     TeamCheck, VisibilityCheck, DistanceCheck,
     DistanceLimit, FieldOfView, Priority, BodyParts,
@@ -332,20 +394,32 @@ OldNamecall = hookmetamethod(game, "__namecall", function(Self, ...)
 end)
 
 Parvus.Utilities.NewThreadLoop(0, function()
-    if not (Aimbot or Window.Flags["Aimbot/AlwaysEnabled"]) then return end
-
-    AimAt(GetClosest(
-        Window.Flags["Aimbot/Enabled"],
-        Window.Flags["Aimbot/TeamCheck"],
-        Window.Flags["Aimbot/VisibilityCheck"],
-        Window.Flags["Aimbot/DistanceCheck"],
-        Window.Flags["Aimbot/DistanceLimit"],
-        Window.Flags["Aimbot/FOV/Radius"],
-        Window.Flags["Aimbot/Priority"][1],
-        Window.Flags["Aimbot/BodyParts"],
-        Window.Flags["Aimbot/Prediction"]
-    ), Window.Flags["Aimbot/Sensitivity"] / 100)
+    if Window.Flags["SilentAim/UseZombies"] then
+        SilentAim = GetClosestZombie(
+            Window.Flags["SilentAim/Enabled"],
+            Window.Flags["SilentAim/VisibilityCheck"],
+            Window.Flags["SilentAim/DistanceCheck"],
+            Window.Flags["SilentAim/DistanceLimit"],
+            Window.Flags["SilentAim/FOV/Radius"],
+            Window.Flags["SilentAim/Priority"][1],
+            Window.Flags["SilentAim/BodyParts"],
+            Window.Flags["SilentAim/Prediction"]
+        )
+    else
+        SilentAim = GetClosest(
+            Window.Flags["SilentAim/Enabled"],
+            Window.Flags["SilentAim/TeamCheck"],
+            Window.Flags["SilentAim/VisibilityCheck"],
+            Window.Flags["SilentAim/DistanceCheck"],
+            Window.Flags["SilentAim/DistanceLimit"],
+            Window.Flags["SilentAim/FOV/Radius"],
+            Window.Flags["SilentAim/Priority"][1],
+            Window.Flags["SilentAim/BodyParts"],
+            Window.Flags["SilentAim/Prediction"]
+        )
+    end
 end)
+
 Parvus.Utilities.NewThreadLoop(0, function()
     SilentAim = GetClosest(
         Window.Flags["SilentAim/Enabled"],
@@ -381,6 +455,7 @@ Parvus.Utilities.NewThreadLoop(0, function()
 
     if Window.Flags["Trigger/HoldMouseButton"] then
         while task.wait() do
+                
             TriggerClosest = GetClosest(
                 Window.Flags["Trigger/Enabled"],
                 Window.Flags["Trigger/TeamCheck"],
@@ -414,3 +489,4 @@ end)
 PlayerService.PlayerRemoving:Connect(function(Player)
     Parvus.Utilities.Drawing:RemoveESP(Player)
 end)
+
