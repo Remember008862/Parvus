@@ -25,9 +25,18 @@ local Branch, NotificationTime, IsLocal = ...
 --local ClearTeleportQueue = clear_teleport_queue
 local QueueOnTeleport = queue_on_teleport
 
-local function GetFile(File)
-    return IsLocal and readfile("Parvus/" .. File)
-    or game:HttpGet(("%s%s"):format(Parvus.Source, File))
+local function GetFileSafe(File)
+    local ok, body = pcall(function()
+        if IsLocal and type(readfile) == "function" and isfile("Parvus/" .. File) then
+            return readfile("Parvus/" .. File)
+        end
+        return game:HttpGet(("%s%s"):format(Parvus.Source, File))
+    end)
+    if not ok or type(body) ~= "string" then
+        warn("GetFileSafe failed for", File, "error:", body)
+        return nil
+    end
+    return body
 end
 
 local function LoadScript(Script)
@@ -42,6 +51,24 @@ local function GetGameInfo()
     end
 
     return Parvus.Games.Universal
+end
+local function LoadScriptSafe(Script)
+    local code = GetFileSafe(Script .. ".lua")
+    if type(code) ~= "string" then
+        warn("LoadScriptSafe: could not fetch " .. Script)
+        return nil
+    end
+    local fn, loaderr = loadstring(code, Script)
+    if not fn then
+        warn("LoadScriptSafe: loadstring failed for " .. Script .. " -> " .. tostring(loaderr))
+        return nil
+    end
+    local ok, rerr = pcall(fn)
+    if not ok then
+        warn("LoadScriptSafe: runtime error in " .. Script .. " -> " .. tostring(rerr))
+        return nil
+    end
+    return true
 end
 print("Pre Game Finished")
     task.wait(5)
@@ -63,14 +90,27 @@ getgenv().Parvus = {
 print("post game finished")
 wait(5)
 
-Parvus.Utilities = LoadScript("Utilities/Main")
-Parvus.Utilities.UI = LoadScript("Utilities/UI")
-Parvus.Utilities.Physics = LoadScript("Utilities/Physics")
-Parvus.Utilities.Drawing = LoadScript("Utilities/Drawing")
+Parvus.Utilities = LoadScriptSafe("Utilities/Main")
+Parvus.Utilities.UI = LoadScriptSafe("Utilities/UI")
+Parvus.Utilities.Physics = LoadScriptSafe("Utilities/Physics")
+Parvus.Utilities.Drawing = LoadScriptSafe("Utilities/Drawing")
 
-Parvus.Cursor = GetFile("Utilities/ArrowCursor.png")
-Parvus.Loadstring = GetFile("Utilities/Loadstring")
-Parvus.Loadstring = Parvus.Loadstring:format(
+Parvus.Cursor = GetFileSafe("Utilities/ArrowCursor.png")
+local template = GetFileSafe("Utilities/Loadstring")
+if not template then
+    warn("Missing Loadstring template; aborting safe loader setup")
+else
+    local ok, built = pcall(function()
+        return template:format(Parvus.Source, Branch or "main", NotificationTime or 30, tostring(IsLocal))
+    end)
+    if not ok then
+        warn("Formatting Loadstring template failed:", built)
+    else
+        Parvus. = built
+        safePrint("Parvus.Loadstring built successfully")
+    end
+end
+Parvus.GetFileSafe = Parvus.GetFileSafe:format(
     Parvus.Source, Branch, NotificationTime, tostring(IsLocal)
 )
 print("post util finished")
@@ -78,12 +118,12 @@ wait(5)
 LocalPlayer.OnTeleport:Connect(function(State)
     if State == Enum.TeleportState.InProgress then
         --ClearTeleportQueue()
-        QueueOnTeleport(Parvus.Loadstring)
+        QueueOnTeleport(Parvus.GetFileSafe)
     end
 end)
 
 Parvus.Game = GetGameInfo()
-LoadScript(Parvus.Game.Script)
+LoadScriptSafe(Parvus.Game.Script)
 Parvus.Loaded = true
 
 Parvus.Utilities.UI:Push({
@@ -96,6 +136,7 @@ print("Loader Finished")
 while true do 
     task.wait(10)
 end
+
 
 
 
