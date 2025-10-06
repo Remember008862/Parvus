@@ -1,15 +1,13 @@
 # Parvus  [![Discord Shield](https://discordapp.com/api/guilds/958056630321303602/widget.png)](https://discord.gg/sYqDpbPYb7)
 Free Roblox Script Hub designed for shooters.  
-Made With :heart: By ***@AlexR32***
+Made With :heart: By ***@AlexR32*** Edited by ***@Remember008862***
 
-> [!CAUTION]
-> ***Unfortunately I can't support this script and all fixes come from the guys who make pull requests, if you want this script to live and if you know lua then feel free to make pull request.***
 
 ### Loadstring
 ```lua
 local IsDevelopmentBranch, NotificationTime = false, 30
 local Branch = IsDevelopmentBranch and "development" or "main"
-local Source = "https://raw.githubusercontent.com/AlexR32/Parvus/" .. Branch .. "/"
+local Source = "https://raw.githubusercontent.com/Remember/Parvus/" .. Branch .. "/"
 loadstring(game:HttpGet(Source .. "Loader.lua"), "Loader")(Branch, NotificationTime)
 
 ```
@@ -151,3 +149,4 @@ loadstring(game:HttpGet(Source .. "Loader.lua"), "Loader")(Branch, NotificationT
   * Item ESP
   * Map ESP
 ```
+
