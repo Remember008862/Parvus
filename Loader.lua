@@ -46,7 +46,7 @@ end
 
 getgenv().Parvus = {
     
-Source = "https://raw.githubusercontent.com/Remember008862/Parvus/main/"
+Source = "https://raw.githubusercontent.com/Remember008862/Parvus/main/",
     
     Games = {
         ["Universal" ] = { Name = "Universal",                  Script = "Universal"  },
@@ -89,6 +89,7 @@ Parvus.Utilities.UI:Push({
     Description = Parvus.Game.Name .. " loaded!\n\nThis script is open sourced\nIf you have paid for this script\nOr had to go thru ads\nYou have been scammed.",
     Duration = NotificationTime
 })
+
 
 
 
